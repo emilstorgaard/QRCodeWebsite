@@ -1,0 +1,59 @@
+﻿@page "/qr"
+@inject HttpClient Http
+
+<PageTitle>QR CODE</PageTitle>
+
+<h1>QR CODE</h1>
+
+<form @onsubmit="OnSubmit">
+    <p>
+        <label for="urlInput">Enter URL to generate QR code:</label><br />
+        <input id="urlInput" @bind="urlToEncode" placeholder="https://example.com" class="form-control" />
+    </p>
+
+    <button type="submit" class="btn btn-primary" disabled="@string.IsNullOrWhiteSpace(urlToEncode)">
+        Generate QR Code
+    </button>
+</form>
+
+<br />
+
+@if (!string.IsNullOrEmpty(qrCodeImageDataUrl))
+{
+    <img src="@qrCodeImageDataUrl" alt="QR Code" style="width: 200px; height: auto;" />
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p class="text-danger">@errorMessage</p>
+}
+
+@code {
+    private string urlToEncode;
+    private string qrCodeImageDataUrl;
+    private string errorMessage;
+
+    private async Task OnSubmit()
+    {
+        errorMessage = null;
+        qrCodeImageDataUrl = null;
+
+        if (string.IsNullOrWhiteSpace(urlToEncode))
+        {
+            errorMessage = "Please enter a valid URL.";
+            return;
+        }
+
+        try
+        {
+            var encodedUrl = Uri.EscapeDataString(urlToEncode);
+            var apiEndpoint = $"api/qr/{encodedUrl}";
+            var imageBytes = await Http.GetByteArrayAsync(apiEndpoint);
+            var base64 = Convert.ToBase64String(imageBytes);
+            qrCodeImageDataUrl = $"data:image/png;base64,{base64}";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+    }
+}
