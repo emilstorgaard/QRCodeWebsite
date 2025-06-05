@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  qr_code_website:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8480:80"
+    container_name: qr_code_website
